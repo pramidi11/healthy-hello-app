@@ -3,9 +3,8 @@ name: build and deploy app
 # this should run only on develop/master branch
 on:
   push:
-    branches: [ "feature/hello-app" ]
-  pull_request:
-    branches: [ "feature/hello-app" ]
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       account:
