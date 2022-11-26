@@ -14,6 +14,7 @@ import {
 import {readFileSync} from "fs";
 import {CfnOutput} from "aws-cdk-lib";
 import {CfnHealthCheck} from "aws-cdk-lib/aws-route53";
+import {Alarm} from "aws-cdk-lib/aws-cloudwatch";
 
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
 
@@ -59,19 +60,5 @@ export class HealthyHelloAppStack extends cdk.Stack {
       keyName: 'displa'
     })
 
-    const healthCheck = new CfnHealthCheck(this, 'myec2HealthCheck', {
-      healthCheckConfig: {
-        type: 'ec2',
-        alarmIdentifier: {
-          name: 'hello',
-          region: 'ap-southeast-2'
-        },
-        ipAddress: webServer.instancePublicIp,
-        port: 80,
-        measureLatency: false,
-        requestInterval: 60
-      }
-
-    })
   }
 }

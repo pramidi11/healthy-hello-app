@@ -19,7 +19,7 @@ new HealthyHelloAppStack(app, 'HealthyHelloAppStack', {
 
   /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
     env: {
-        account: '066266277042',
+        account: process.env.AWS_ACCOUNT,
         region: 'ap-southeast-2'
     }
 });
