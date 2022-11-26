@@ -20,7 +20,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
       - run: npm ci
-      - run: npm run build --if-present
+      - run: npm run build
       - run: docker build -t ghcr.io/pramidi11/hello-app:latest .
         working-directory: src
       - name: Login to GitHub Container Registry
