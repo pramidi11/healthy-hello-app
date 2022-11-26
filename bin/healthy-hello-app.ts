@@ -18,4 +18,8 @@ new HealthyHelloAppStack(app, 'HealthyHelloAppStack', {
   // env: { account: '123456789012', region: 'us-east-1' },
 
   /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
+    env: {
+        account: '066266277042',
+        region: 'ap-southeast-2'
+    }
 });
