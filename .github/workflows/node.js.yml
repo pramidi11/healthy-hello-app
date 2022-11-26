@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [16.x, 18.x]
+        node-version: [18.x]
 
     steps:
     - uses: actions/checkout@v3
@@ -32,14 +32,6 @@ jobs:
       working-directory: src
     - run: npm run build --if-present
       working-directory: src
-    - run: docker build -t hello-app:latest .
-      working-directory: src
-    - name: Configure aws credentials
-      uses: aws-actions/configure-aws-credentials@master
-      with:
-        aws-access-key-id: ${{ secrets.AWS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
-        aws-region: 'ap-southeast-2'
-    - run: cdk synth
+
 
 

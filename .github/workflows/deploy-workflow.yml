@@ -1,0 +1,31 @@
+name: build and deploy app
+
+on:
+  push:
+    branches: [ "feature/hello-app" ]
+  pull_request:
+    branches: [ "feature/hello-app" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build --if-present
+      - run: docker build -t hello-app:latest .
+        working-directory: src
+      - name: Configure aws credentials
+        uses: aws-actions/configure-aws-credentials@master
+        with:
+          aws-access-key-id: ${{ secrets.AWS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: 'ap-southeast-2'
+      - run: npx cdk synth
