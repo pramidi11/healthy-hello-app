@@ -1,0 +1,48 @@
+name: build and deploy app
+
+# this should run only on develop/master branch
+on:
+  push:
+    branches: [ "feature/hello-app" ]
+  pull_request:
+    branches: [ "feature/hello-app" ]
+  workflow_dispatch:
+    inputs:
+      account:
+        description: Aws account number
+        required: true
+        type: string
+        default: ''
+jobs:
+  deploy:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build
+      - run: docker build -t ghcr.io/pramidi11/hello-app:latest .
+        working-directory: src
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build the hello-docker Docker image
+        run: |
+          docker push ghcr.io/pramidi11/hello-app:latest
+      - name: Configure aws credentials
+        uses: aws-actions/configure-aws-credentials@master
+        with:
+          aws-access-key-id: ${{ secrets.AWS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: 'ap-southeast-2'
+      - run: AWS_ACCOUNT=${{ inputs.account }} npx cdk deploy --require-approval never
+        if: ${{ inputs.account != ''}}
