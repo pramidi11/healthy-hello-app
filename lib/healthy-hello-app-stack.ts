@@ -1,6 +1,8 @@
 import * as cdk from 'aws-cdk-lib';
+import {RemovalPolicy} from 'aws-cdk-lib';
 import {Construct} from 'constructs';
 import {
+    CfnKeyPair,
     Instance,
     InstanceClass,
     InstanceSize,
@@ -14,18 +16,16 @@ import {
     Vpc
 } from "aws-cdk-lib/aws-ec2";
 import {readFileSync} from "fs";
-import {ArnPrincipal, Effect, PolicyStatement, Role, ServicePrincipal} from "aws-cdk-lib/aws-iam";
+import {Effect, PolicyStatement, Role, ServicePrincipal} from "aws-cdk-lib/aws-iam";
 import {FilterPattern, LogGroup, MetricFilter} from "aws-cdk-lib/aws-logs";
-import {Alarm, Metric} from "aws-cdk-lib/aws-cloudwatch";
+import {Alarm} from "aws-cdk-lib/aws-cloudwatch";
 
 
 export class HealthyHelloAppStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
 
-        const vpc = Vpc.fromLookup(this, 'default', {
-            vpcId: 'vpc-069adbafd4ab6a86a'
-        })
+        const vpc = new Vpc(this, 'default')
 
         const sg = new SecurityGroup(this, 'sg', {
             securityGroupName: 'webSg',
@@ -53,23 +53,29 @@ export class HealthyHelloAppStack extends cdk.Stack {
             effect: Effect.ALLOW
         }))
 
-        const ec2LogGroup = new LogGroup(this, 'ec2Logs', {
-            logGroupName: 'displa'
+        try {
+            const ec2LogGroup  = new LogGroup(this, 'ec2Logs', {
+                logGroupName: "helloApp",
+                removalPolicy: RemovalPolicy.DESTROY
+            })
+            const ec2Metric = new MetricFilter(this, 'filter', {
+                filterPattern: FilterPattern.anyTerm( 'warn', 'ERROR', 'error', 'WARN'),
+                logGroup: ec2LogGroup,
+                metricName: "ec2MetricName",
+                metricNamespace: "AppErrorNamespace"
+            })
+            const alarm = new Alarm(this, 'helloAlarm', {
+                evaluationPeriods: 5, metric: ec2Metric.metric(), threshold: 5
+
+            })
+        } catch (e) {
+            console.log(`${e}`)
+        }
+
+        const kp = new CfnKeyPair(this, 'ec2KP', {
+            keyName: "ec2Kp"
+
         })
-
-        const ec2Metric = new MetricFilter(this, 'filter', {
-            filterPattern: FilterPattern.anyTerm( 'warn', 'ERROR', 'error', 'WARN'),
-            logGroup: ec2LogGroup,
-            metricName: "ec2MetricName",
-            metricNamespace: "AppErrorNamespace"
-
-        })
-
-        const alarm = new Alarm(this, 'helloAlarm', {
-            evaluationPeriods: 5, metric: ec2Metric.metric(), threshold: 5
-
-        })
-
 
         const webServer = new Instance(this, 'ec2Web', {
             instanceType: InstanceType.of(InstanceClass.T2, InstanceSize.MICRO),
@@ -84,7 +90,7 @@ export class HealthyHelloAppStack extends cdk.Stack {
                 shebang: userDataScript
             }),
             securityGroup: sg,
-            keyName: 'displa',
+            keyName: kp.keyName,
             role: ec2Role
         })
 
