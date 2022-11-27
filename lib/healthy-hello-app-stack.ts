@@ -1,19 +1,22 @@
 import * as cdk from 'aws-cdk-lib';
 import {Construct} from 'constructs';
 import {
-  Instance,
-  InstanceClass,
-  InstanceSize,
-  InstanceType,
-  MachineImage,
-  Peer,
-  Port,
-  SecurityGroup,
-  SubnetType,
-  UserData,
-  Vpc
+    Instance,
+    InstanceClass,
+    InstanceSize,
+    InstanceType,
+    MachineImage,
+    Peer,
+    Port,
+    SecurityGroup,
+    SubnetType,
+    UserData,
+    Vpc
 } from "aws-cdk-lib/aws-ec2";
 import {readFileSync} from "fs";
+import {ArnPrincipal, Effect, PolicyStatement, Role, ServicePrincipal} from "aws-cdk-lib/aws-iam";
+import {FilterPattern, LogGroup, MetricFilter} from "aws-cdk-lib/aws-logs";
+import {Alarm, Metric} from "aws-cdk-lib/aws-cloudwatch";
 
 
 export class HealthyHelloAppStack extends cdk.Stack {
@@ -34,6 +37,39 @@ export class HealthyHelloAppStack extends cdk.Stack {
 
         const userDataScript = readFileSync('./lib/userdata.sh', 'utf8');
 
+        const ec2Role = new Role(this, 'ec2-role', {
+            assumedBy:  new ServicePrincipal('ec2.amazonaws.com')
+
+        })
+
+        ec2Role.addToPolicy(new PolicyStatement({
+            resources: ['arn:aws:logs:*:*:*'],
+            actions: [
+                'logs:CreateLogGroup',
+                'logs:CreateLogStream',
+                'logs:PutLogEvents',
+                'logs:DescribeLogStreams'
+            ],
+            effect: Effect.ALLOW
+        }))
+
+        const ec2LogGroup = new LogGroup(this, 'ec2Logs', {
+            logGroupName: 'displa'
+        })
+
+        const ec2Metric = new MetricFilter(this, 'filter', {
+            filterPattern: FilterPattern.anyTerm( 'warn', 'ERROR', 'error', 'WARN'),
+            logGroup: ec2LogGroup,
+            metricName: "ec2MetricName",
+            metricNamespace: "AppErrorNamespace"
+
+        })
+
+        const alarm = new Alarm(this, 'helloAlarm', {
+            evaluationPeriods: 5, metric: ec2Metric.metric(), threshold: 5
+
+        })
+
 
         const webServer = new Instance(this, 'ec2Web', {
             instanceType: InstanceType.of(InstanceClass.T2, InstanceSize.MICRO),
@@ -48,7 +84,8 @@ export class HealthyHelloAppStack extends cdk.Stack {
                 shebang: userDataScript
             }),
             securityGroup: sg,
-            keyName: 'displa'
+            keyName: 'displa',
+            role: ec2Role
         })
 
     }

@@ -8,6 +8,9 @@
     "start": "node index.js",
     "build": "tsc"
   },
+  "dependencies": {
+    "log4js": "^6.7.0"
+  },
   "author": "",
   "license": "ISC"
 }

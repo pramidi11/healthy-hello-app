@@ -1,3 +1,6 @@
+[![build and deploy app](https://github.com/pramidi11/healthy-hello-app/actions/workflows/deploy-workflow.yml/badge.svg)](https://github.com/pramidi11/healthy-hello-app/actions/workflows/deploy-workflow.yml)
+
+
 # Welcome to your CDK TypeScript project
 
 This is a blank project for CDK development with TypeScript.
