@@ -5,14 +5,19 @@ yum update -y
 mkdir ~/.aws
 cat <<EOT >> ~/.aws/credentials
 [default]
-role_arn = arn:aws:iam::066266277042:role/HealthyHelloAppStack-ec2roleFD75669B-KW8XCS5BN3I0
+role_arn = arn:aws:iam::066266277042:role/belong-hello
 credential_source = Ec2InstanceMetadata
 region = ap-southeast-2
 EOT
-yum install -y docker
-id ec2-user
-newgrp docker
-sudo usermod -a -G docker ec2-user
-systemctl enable docker.service
-systemctl start docker.service
-docker run -d -p 80:3000 --log-driver=awslogs --log-opt awslogs-region=ap-southeast-2 --log-opt awslogs-group=helloApp ghcr.io/pramidi11/hello-app:latest
+yum install -y httpd
+systemctl start httpd
+systemctl enable httpd
+usermod -a -G apache ec2-user
+chown -R ec2-user:apache /var/www
+chmod 2775 /var/www
+find /var/www -type d -exec sudo chmod 2775 {} \;
+find /var/www -type f -exec sudo chmod 0664 {} \;
+cd /var/www/html
+aws s3 cp s3://belong-coding-challenge/belong-test.html .
+
+
