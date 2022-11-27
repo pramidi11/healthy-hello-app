@@ -5,18 +5,19 @@
 
 This is simple application to demo 
 1. simple page web application serving hello world with nodejs
-2. CDK to deploy infrastructure as code
+2. CDK to deploy infrastructure as code on AWS
 3. Deploy node application in docker on direct ec2 host
 4. Monitor ec2/application health with cloudwatch alarm
 
 #Architecture
 [!img.png](src/img.png)
 # Stack
-1. EC2 machine with docker installed and deploying on subnet.
-2. awslog driver to forward logs to cloudwatch
-3. Cloudwatch logs to collect logs
-4. Cloudwatch alarm to alert in case application logs are warn/error
-5. security group to add firewall to control access of ec2. TCP 80/22 is open to internet and can be controlled
+1. Creates VPC from scratch with default configs
+2. EC2 machine with docker installed and deploying on subnet.
+3. awslog driver to forward logs to cloudwatch
+4. Cloudwatch logs to collect logs
+5. Cloudwatch alarm to alert in case application logs are warn/error
+6. security group to add firewall to control access of ec2. TCP 80/22 is open to internet and can be controlled
 
 
 #Local Setuptools
